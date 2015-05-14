@@ -9,19 +9,21 @@ class _Actuator(actuate.SmapActuator):
       self.serverAddr = opts['webctrlServerAddr'];
       self.scriptPath = opts['scriptPath'];
    
-   def webctrlRequest(self, typeOfRequest, value):
+   def webctrlRequest(self, typeOfRequest, inputValue = "0"):
       cleanDevicePath = "\"{0}\"".format(self.devicePath)
-      pythonCmd = [self.scriptPath, get, self.serverAddr, cleanDevicePath, value]
+      pythonCmd = [self.scriptPath, typeOfRequest, self.serverAddr, cleanDevicePath, inputValue]
+      print pythonCmd;
       value = subprocess.check_output(pythonCmd)
       return value;
 
+
    def get_state(self, request):
-      value = webctrlRequest("getValue","0");
-      return float(value);
+      return float(self.webctrlRequest("getValue"));
    
    def set_state(self, request, state):
-      state = webctrlRequest("setValue",str(state));
-      return float(state)
+      status = self.webctrlRequest("setValue", str(state));
+      if status:
+         return float(state);
       
 class WebCTRL_Actuator(_Actuator, actuate.IntegerActuator):
    def setup(self, opts):
@@ -51,5 +53,6 @@ class WebCtrlDriver(driver.SmapDriver):
             setup['devicePath'] = devicePath;
 
             actuatorPath = '{0}/{1}'.format(entry['path'], point);
+            print actuatorPath
             self.add_actuator(actuatorPath, 'Value', klass, setup=setup, data_type=data_type)
                        
