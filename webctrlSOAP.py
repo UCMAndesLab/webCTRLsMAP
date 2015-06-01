@@ -2,7 +2,7 @@ import sys, SOAPpy
 
 # Initialize connection to WebCtrl
 class webctrlSOAP:
-   def __init__(self, username = 'DEFAULT', password= 'PASSWORD'):
+   def __init__(self, username = 'verickson', password= 'acerpa1982'):
       self.bacuser = username
       self.password = password
    

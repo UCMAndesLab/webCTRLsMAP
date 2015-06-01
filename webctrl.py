@@ -1,27 +1,41 @@
 import os, subprocess
 import json
+from webctrlSOAP import webctrlSOAP
 from smap import actuate, driver
 from smap.authentication import authenticated
 
 class _Actuator(actuate.SmapActuator):
+   GET_REQUEST = 'getValue'
+   SET_REQUEST = 'setValue'
+
    def setup(self, opts):
       self.devicePath = os.path.expanduser(opts['devicePath'])
       self.serverAddr = opts['webctrlServerAddr'];
-      self.scriptPath = opts['scriptPath'];
-   
+
+      if 'scriptPath' in opts:
+         self.scriptPath = opts['scriptPath'];
+      else:
+         self.webctrl = webctrlSOAP();
+
    def webctrlRequest(self, typeOfRequest, inputValue = "0"):
       cleanDevicePath = "\"{0}\"".format(self.devicePath)
-      pythonCmd = [self.scriptPath, typeOfRequest, self.serverAddr, cleanDevicePath, inputValue]
-      print pythonCmd;
-      value = subprocess.check_output(pythonCmd)
+      print cleanDevicePath;
+      if 'scriptPath' in self:
+         pythonCmd = [self.scriptPath, typeOfRequest, self.serverAddr, cleanDevicePath, inputValue]
+         value = subprocess.check_output(pythonCmd)
+      else:
+         if typeOfRequest == self.SET_REQUEST: 
+            value = self.webctrl.setValue(self.serverAddr, self.devicePath, inputValue);
+         else:
+            value = self.webctrl.getValue(self.serverAddr, self.devicePath);
       return value;
 
 
    def get_state(self, request):
-      return float(self.webctrlRequest("getValue"));
+      return float(self.webctrlRequest(self.GET_REQUEST));
    
    def set_state(self, request, state):
-      status = self.webctrlRequest("setValue", str(state));
+      status = self.webctrlRequest(self.SET_REQUEST, str(state));
       if status:
          return float(state);
       
